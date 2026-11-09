@@ -1,0 +1,6 @@
+/* The v3 wireframe look, shared by every panel (P2). */
+.root {
+    -fx-font-family: "Helvetica", "Arial", sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: white;
+}
