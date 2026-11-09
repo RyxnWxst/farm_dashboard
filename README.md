@@ -1,6 +1,6 @@
 # Farm Dashboard
 
-JavaFX farm dashboard for the CS420 Design and Implementation phase.
+JavaFX Farm dashboard.
 
 ## Requirements
 - JDK 17
@@ -14,4 +14,3 @@ JavaFX farm dashboard for the CS420 Design and Implementation phase.
 - IntelliJ: Maven tool window > Lifecycle > `test`
 - Terminal: `mvn clean test`
 
-GitLab: (add the repo link)
