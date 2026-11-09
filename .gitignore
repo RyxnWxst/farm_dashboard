@@ -1,0 +1,13 @@
+# Build output
+target/
+
+# Working copies of the JSON files (the defaults live in src/main/resources/com/farmdashboard/data/)
+run-data/
+
+# Editor files
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+.DS_Store
