@@ -2,7 +2,7 @@ package com.farmdashboard.entity;
 
 import java.util.List;
 
-// the Leaf
+// the Leaf component
 public class Item extends FarmComponent {
 
     public Item(String name, double price, double locationX, double locationY,
