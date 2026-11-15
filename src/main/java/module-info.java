@@ -4,5 +4,8 @@ module com.farmdashboard {
 
     exports com.farmdashboard;
 
+    // Gson fills NodeData's private fields by reflection
+    opens com.farmdashboard.data to com.google.gson;
+
 
 }
