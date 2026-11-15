@@ -1,0 +1,11 @@
+{
+  "type": "CONTAINER",
+  "name": "Root",
+  "price": 0,
+  "x": 0,
+  "y": 0,
+  "length": 800,
+  "width": 600,
+  "height": 0,
+  "child": []
+}
