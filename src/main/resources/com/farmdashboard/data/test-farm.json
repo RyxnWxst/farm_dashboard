@@ -1,0 +1,42 @@
+{
+  "type": "CONTAINER", "name": "Root", "price": 0,
+  "x": 0, "y": 0, "length": 800, "width": 600, "height": 0,
+  "child": [
+    {
+      "type": "CONTAINER", "name": "Barn", "price": 50000,
+      "x": 500, "y": 300, "length": 270, "width": 260, "height": 30,
+      "child": [
+        {
+          "type": "CONTAINER", "name": "Livestock area", "price": 5000,
+          "x": 520, "y": 320, "length": 140, "width": 110, "height": 10,
+          "child": [
+            { "type": "ITEM", "name": "Cow", "price": 1500,
+              "x": 545, "y": 345, "length": 50, "width": 30, "height": 5, "child": [] }
+          ]
+        },
+        { "type": "ITEM", "name": "Milk storage", "price": 8000,
+          "x": 520, "y": 460, "length": 120, "width": 70, "height": 12, "child": [] }
+      ]
+    },
+    {
+      "type": "CONTAINER", "name": "Storage building", "price": 30000,
+      "x": 30, "y": 330, "length": 230, "width": 150, "height": 25,
+      "child": [
+        { "type": "ITEM", "name": "Tractor", "price": 45000,
+          "x": 50, "y": 360, "length": 80, "width": 50, "height": 10, "child": [] },
+        { "type": "ITEM", "name": "Tiller", "price": 3500,
+          "x": 150, "y": 360, "length": 70, "width": 40, "height": 4, "child": [] }
+      ]
+    },
+    {
+      "type": "CONTAINER", "name": "Command center", "price": 20000,
+      "x": 30, "y": 30, "length": 160, "width": 110, "height": 15,
+      "child": [
+        { "type": "ITEM", "name": "Drone", "price": 2500,
+          "x": 85, "y": 60, "length": 40, "width": 40, "height": 1, "child": [] }
+      ]
+    },
+    { "type": "ITEM", "name": "Soy crop", "price": 12000,
+      "x": 230, "y": 30, "length": 540, "width": 220, "height": 3, "child": [] }
+  ]
+}
