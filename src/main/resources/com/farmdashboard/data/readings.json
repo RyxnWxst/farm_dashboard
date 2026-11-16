@@ -1,0 +1,24 @@
+{
+  "readings": [
+    {
+      "item": "Soy crop", "updated": "2026-11-09T15:00", "status": "WATCH",
+      "note": "Growth is behind in areas C2 and C3",
+      "zones": [
+        { "name": "Zone 1", "moisture": 42 },
+        { "name": "Zone 2", "moisture": 18 },
+        { "name": "Zone 3", "moisture": 35 },
+        { "name": "Zone 4", "moisture": 28 },
+        { "name": "Zone 5", "moisture": 45 },
+        { "name": "Zone 6", "moisture": 38 }
+      ],
+      "growthBehind": ["C2", "C3"]
+    },
+    { "item": "Cow", "updated": "2026-11-09T15:00", "status": "OK", "note": "Healthy" },
+    { "item": "Tractor", "updated": "2026-11-09T15:00", "status": "GOOD", "note": "In use" },
+    { "item": "Tiller", "updated": "2026-11-09T15:00", "status": "GOOD", "note": "In storage" },
+    { "item": "Milk storage", "updated": "2026-11-09T15:00", "status": "OK",
+      "label": "full", "percent": 70 },
+    { "item": "Drone", "updated": "2026-11-09T15:00", "status": "OK",
+      "label": "battery", "percent": 85 }
+  ]
+}
