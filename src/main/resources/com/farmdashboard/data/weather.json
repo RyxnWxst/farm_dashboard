@@ -1,0 +1,13 @@
+{
+  "windMph": 12,
+  "windDirection": "NW",
+  "rainPercent": 10,
+  "temperatureF": 72,
+  "forecast": [
+    { "label": "3 PM", "time": "15:00", "windMph": 14, "rainPercent": 10 },
+    { "label": "5 PM", "time": "17:00", "windMph": 19, "rainPercent": 35 },
+    { "label": "6 PM", "time": "18:00", "windMph": 24, "rainPercent": 50 },
+    { "label": "7 PM", "time": "19:00", "windMph": 22, "rainPercent": 60 },
+    { "label": "6 AM tomorrow", "time": "06:00", "windMph": 5, "rainPercent": 0 }
+  ]
+}
