@@ -44,6 +44,7 @@ public class Dashboard {
     private DroneActionPanel droneActionPanel;
 
     private Dashboard() {
+
         root = new ItemContainer("Root", 0, 0, 0, 800, 600, 0);
 
         NodeData saved = FarmDataStore.getInstance().get(DataFile.FARM, NodeData.class);
@@ -70,7 +71,7 @@ public class Dashboard {
         built = true;
 
         alertsBox = new AlertsBox(farmAlerts);
-        statusBox = new StatusBox(root, droneController, itemReadings);
+        statusBox = new StatusBox(root, droneController);
         treePanel = new ItemTreePanel(root, farmController);
         mapPanel = new VisualizationPanel();
         mapPanel.setRoot(root);
@@ -115,6 +116,7 @@ public class Dashboard {
         selected = node;
         commandPanel.showFor(node);
         statusBox.showFor(node);
+
     }
 
     public void refresh() {

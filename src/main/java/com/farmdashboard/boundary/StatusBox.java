@@ -1,10 +1,14 @@
 package com.farmdashboard.boundary;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import com.farmdashboard.control.DroneController;
 import com.farmdashboard.control.FlightConditions;
-import com.farmdashboard.control.ItemReadings;
+import com.farmdashboard.data.DataFile;
+import com.farmdashboard.data.FarmDataStore;
+import com.farmdashboard.data.ReadingsData;
 import com.farmdashboard.entity.FarmComponent;
 import com.farmdashboard.entity.ItemContainer;
 
@@ -18,16 +22,13 @@ public class StatusBox extends VBox {
 
     private final ItemContainer root;
     private final DroneController droneController;
-    private final ItemReadings itemReadings;
 
     private final Label title = new Label("Status");
     private final VBox list = new VBox(6);
 
-    public StatusBox(ItemContainer root, DroneController droneController,
-            ItemReadings itemReadings) {
+    public StatusBox(ItemContainer root, DroneController droneController) {
         this.root = root;
         this.droneController = droneController;
-        this.itemReadings = itemReadings;
 
         getStyleClass().add("box");
         setPadding(new Insets(10));
@@ -90,7 +91,6 @@ public class StatusBox extends VBox {
                     ScreenKit.infoRow("Drone", "Not on the farm", ScreenKit.Status.ACT));
             return;
         }
-
         double cx = drone.getCenterX();
         double cy = drone.getCenterY();
         list.getChildren().add(ScreenKit.infoRow("Drone",
@@ -111,17 +111,55 @@ public class StatusBox extends VBox {
         list.getChildren().add(ScreenKit.infoRow("Flight conditions", text, ScreenKit.fromWord(word)));
     }
 
+    private static final DateTimeFormatter TIME_FORMAT =
+            DateTimeFormatter.ofPattern("MMM d, h:mm a", Locale.US);
+
     private void addLatestReading(FarmComponent node) {
-        String reading = itemReadings.describe(node);
+        String text = latestReadingText(node);
         list.getChildren().add(ScreenKit.infoRow("Latest reading",
-                reading == null ? "None for this node" : reading));
+                text == null ? "None for this node" : text));
+    }
+
+    private static String latestReadingText(FarmComponent node) {
+        ReadingsData data = FarmDataStore.getInstance().get(DataFile.READINGS, ReadingsData.class);
+        if (data == null || data.getReadings() == null) {
+            return null;
+        }
+        for (var reading : data.getReadings()) {
+            if (reading.getItem() == null || !reading.getItem().equalsIgnoreCase(node.getName())) {
+                continue;
+            }
+            StringBuilder text = new StringBuilder();
+            if (reading.getStatus() != null) {
+                text.append(reading.getStatus());
+            }
+            if (reading.getLabel() != null && !reading.getLabel().isEmpty()) {
+                text.append(text.length() > 0 ? ": " : "")
+                    .append(reading.getLabel()).append(' ')
+                    .append(reading.getPercent()).append('%');
+            } else if (reading.getNote() != null && !reading.getNote().isEmpty()) {
+                text.append(text.length() > 0 ? ": " : "").append(reading.getNote());
+            }
+            if (reading.getUpdated() != null) {
+                text.append(" (").append(formatUpdated(reading.getUpdated())).append(')');
+            }
+            return text.toString();
+        }
+        return null;
+    }
+
+    private static String formatUpdated(String isoText) {
+        try {
+            return LocalDateTime.parse(isoText).format(TIME_FORMAT);
+        } catch (RuntimeException e) {
+            return isoText;
+        }
     }
 
     private static String money(double value) {
         return String.format(Locale.US, "$%,.0f", value);
     }
 
-    /** Whole numbers without ".0", others with one decimal. */
     private static String number(double value) {
         return (value == Math.rint(value))
                 ? String.format(Locale.US, "%d", (long) value)

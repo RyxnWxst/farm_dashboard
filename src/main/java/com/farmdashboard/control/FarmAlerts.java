@@ -19,10 +19,9 @@ public class FarmAlerts {
 
     public record Alert(Severity severity, String message) { }
 
-    // Thresholds from the plan's design rules
-    static final int LOW_MOISTURE_PERCENT = 25;      // below this is flagged
-    static final double UNSAFE_WIND_MPH = 20;        // above this is unsafe
-    static final int UNSAFE_RAIN_PERCENT = 50;       // at or above this is unsafe
+    static final int LOW_MOISTURE_PERCENT = 25;
+    static final double UNSAFE_WIND_MPH = 20;
+    static final int UNSAFE_RAIN_PERCENT = 50;
 
     private static final DateTimeFormatter HOUR_FORMAT =
             DateTimeFormatter.ofPattern("h a", Locale.US);
@@ -69,18 +68,19 @@ public class FarmAlerts {
             return;
         }
         for (var reading : readings.getReadings()) {
+
             if (root.findByName(reading.getItem()) == null) {
                 continue;
             }
-            List<Integer> zones = reading.getZoneMoisture();
+            var zones = reading.getZones();
             if (zones == null) {
                 continue;
             }
-            for (int i = 0; i < zones.size(); i++) {
-                if (zones.get(i) < LOW_MOISTURE_PERCENT) {
+            for (var zone : zones) {
+                if (zone.getMoisture() < LOW_MOISTURE_PERCENT) {
                     alerts.add(new Alert(Severity.ACT,
                             "Low soil moisture in the " + reading.getItem()
-                            + "'s Zone " + (i + 1) + " (" + zones.get(i) + "%)"));
+                            + "'s " + zone.getName() + " (" + zone.getMoisture() + "%)"));
                 }
             }
         }
@@ -92,6 +92,7 @@ public class FarmAlerts {
         if (weather == null || weather.getForecast() == null) {
             return;
         }
+
         for (var entry : weather.getForecast()) {
             boolean unsafe = entry.getWindMph() > UNSAFE_WIND_MPH
                     || entry.getRainPercent() >= UNSAFE_RAIN_PERCENT;
@@ -104,6 +105,7 @@ public class FarmAlerts {
     }
 
     private static String formatTime(String isoText) {
+
         return LocalDateTime.parse(isoText).format(HOUR_FORMAT);
     }
 }
