@@ -1,21 +1,27 @@
+requires transitive javafx.controls;
+
 package com.farmdashboard;
-
-import com.farmdashboard.boundary.VisualizationPanel;
-import com.farmdashboard.data.DataFile;
-import com.farmdashboard.data.FarmDataStore;
-import com.farmdashboard.data.FarmJson;
-import com.farmdashboard.data.NodeData;
-import com.farmdashboard.entity.ItemContainer;
-
+ 
+import com.farmdashboard.boundary.Dashboard;
+ 
 import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+
+import static javafx.application.Application.launch;
 
 public class App extends Application {
 
     @Override
     public void start(Stage stage) {
+        Dashboard.getInstance().show(stage);
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
+
+        /*
         ItemContainer root = new ItemContainer("Root", 0, 0, 0, 800, 600, 0);
         FarmJson.copyInto(root, FarmDataStore.getInstance().get(DataFile.TEST_FARM, NodeData.class));
 
@@ -35,4 +41,4 @@ public class App extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-}
+} */
