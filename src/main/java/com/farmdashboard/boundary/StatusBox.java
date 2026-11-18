@@ -51,7 +51,7 @@ public class StatusBox extends VBox {
         showFor(root);
     }
 
-    public void showFor(FarmComponent node) {
+    public final void showFor(FarmComponent node) {
         FarmComponent shown = (node == null) ? root : node;
         list.getChildren().clear();
 
@@ -91,6 +91,7 @@ public class StatusBox extends VBox {
                     ScreenKit.infoRow("Drone", "Not on the farm", ScreenKit.Status.ACT));
             return;
         }
+
         double cx = drone.getCenterX();
         double cy = drone.getCenterY();
         list.getChildren().add(ScreenKit.infoRow("Drone",
@@ -148,12 +149,8 @@ public class StatusBox extends VBox {
         return null;
     }
 
-    private static String formatUpdated(String isoText) {
-        try {
-            return LocalDateTime.parse(isoText).format(TIME_FORMAT);
-        } catch (RuntimeException e) {
-            return isoText;
-        }
+    private static String formatUpdated(LocalDateTime time) {
+        return time.format(TIME_FORMAT);
     }
 
     private static String money(double value) {
