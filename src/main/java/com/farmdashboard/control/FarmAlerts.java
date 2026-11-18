@@ -19,20 +19,21 @@ public class FarmAlerts {
 
     public record Alert(Severity severity, String message) { }
 
-    static final int LOW_MOISTURE_PERCENT = 25;
-    static final double UNSAFE_WIND_MPH = 20;
-    static final int UNSAFE_RAIN_PERCENT = 50;
+    // Thresholds from the plan's design rules
+    static final int LOW_MOISTURE_PERCENT = 25;      // below this is flagged
+    static final double UNSAFE_WIND_MPH = 20;        // above this is unsafe
+    static final int UNSAFE_RAIN_PERCENT = 50;       // at or above this is unsafe
 
     private static final DateTimeFormatter HOUR_FORMAT =
             DateTimeFormatter.ofPattern("h a", Locale.US);
 
     private final ItemContainer root;
 
-    public FarmAlerts(ItemContainer root){
+    public FarmAlerts(ItemContainer root) {
         this.root = root;
     }
 
-    public List<Alert> getAlerts(){
+    public List<Alert> getAlerts() {
         List<Alert> alerts = new ArrayList<>();
         addMissingDrone(alerts);
         addOutOfBounds(alerts);
@@ -42,7 +43,7 @@ public class FarmAlerts {
     }
 
     private void addMissingDrone(List<Alert> alerts) {
-        if (findIgnoreCase(root, "Drone") == null) {
+        if (root.findByName("Drone") == null) {
             alerts.add(new Alert(Severity.ACT, "No drone on the farm"));
         }
     }
@@ -52,23 +53,13 @@ public class FarmAlerts {
     }
 
     private void collectOutOfBounds(FarmComponent parent, List<Alert> alerts) {
-        if (!parent.isContainer()) {
-            return;
-        }
-        for (FarmComponent child : ((ItemContainer) parent).getChildren()) {
-            if (!isInside(child, parent)) {
+        for (FarmComponent child : parent.getChild()) {
+            if (!child.isInside(parent)) {
                 alerts.add(new Alert(Severity.WATCH,
                         child.getName() + " is outside " + parent.getName()));
             }
             collectOutOfBounds(child, alerts);
         }
-    }
-
-    private static boolean isInside(FarmComponent child, FarmComponent parent) {
-        return child.getX() >= parent.getX()
-                && child.getY() >= parent.getY()
-                && child.getX() + child.getLength() <= parent.getX() + parent.getLength()
-                && child.getY() + child.getWidth() <= parent.getY() + parent.getWidth();
     }
 
     private void addLowReadings(List<Alert> alerts) {
@@ -114,20 +105,5 @@ public class FarmAlerts {
 
     private static String formatTime(String isoText) {
         return LocalDateTime.parse(isoText).format(HOUR_FORMAT);
-    }
-
-    private static FarmComponent findIgnoreCase(FarmComponent node, String name) {
-        if (node.getName().equalsIgnoreCase(name)) {
-            return node;
-        }
-        if (node.isContainer()) {
-            for (FarmComponent child : ((ItemContainer) node).getChildren()) {
-                FarmComponent found = findIgnoreCase(child, name);
-                if (found != null) {
-                    return found;
-                }
-            }
-        }
-        return null;
     }
 }

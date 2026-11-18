@@ -68,30 +68,31 @@ public class StatusBox extends VBox {
         list.getChildren().add(ScreenKit.infoRow("Selected", node.getName() + " (" + kind + ")"));
         list.getChildren().add(ScreenKit.infoRow("Price", money(node.getPrice())));
         if (node.isContainer()) {
-            list.getChildren().add(ScreenKit.infoRow("With contents", money(node.getTotalPrice())));
-            int count = ((ItemContainer) node).getChildren().size();
+            list.getChildren().add(ScreenKit.infoRow("With contents", money(node.getTotal())));
+            int count = node.getChild().size();
             list.getChildren().add(ScreenKit.infoRow("Holds", count + (count == 1 ? " child" : " children")));
         }
         list.getChildren().add(ScreenKit.infoRow("Location",
-                "(" + number(node.getX()) + ", " + number(node.getY()) + ")"));
+                "(" + number(node.getLocationX()) + ", " + number(node.getLocationY()) + ")"));
         list.getChildren().add(ScreenKit.infoRow("Size",
                 number(node.getLength()) + " x " + number(node.getWidth())
                 + " x " + number(node.getHeight())));
     }
 
     private void addFarmTotal() {
-        list.getChildren().add(ScreenKit.infoRow("Farm total", money(root.getTotalPrice())));
+        list.getChildren().add(ScreenKit.infoRow("Farm total", money(root.getTotal())));
     }
 
     private void addDrone() {
-        FarmComponent drone = findIgnoreCase(root, "Drone");
+        FarmComponent drone = root.findByName("Drone");
         if (drone == null) {
             list.getChildren().add(
                     ScreenKit.infoRow("Drone", "Not on the farm", ScreenKit.Status.ACT));
             return;
         }
-        double cx = drone.getX() + drone.getLength() / 2.0;
-        double cy = drone.getY() + drone.getWidth() / 2.0;
+
+        double cx = drone.getCenterX();
+        double cy = drone.getCenterY();
         list.getChildren().add(ScreenKit.infoRow("Drone",
                 "Home at (" + number(cx) + ", " + number(cy) + ")", ScreenKit.Status.GOOD));
 
@@ -120,6 +121,7 @@ public class StatusBox extends VBox {
         return String.format(Locale.US, "$%,.0f", value);
     }
 
+    /** Whole numbers without ".0", others with one decimal. */
     private static String number(double value) {
         return (value == Math.rint(value))
                 ? String.format(Locale.US, "%d", (long) value)
@@ -131,20 +133,5 @@ public class StatusBox extends VBox {
             return "";
         }
         return word.substring(0, 1).toUpperCase(Locale.US) + word.substring(1).toLowerCase(Locale.US);
-    }
-
-    private static FarmComponent findIgnoreCase(FarmComponent node, String name) {
-        if (node.getName().equalsIgnoreCase(name)) {
-            return node;
-        }
-        if (node.isContainer()) {
-            for (FarmComponent child : ((ItemContainer) node).getChildren()) {
-                FarmComponent found = findIgnoreCase(child, name);
-                if (found != null) {
-                    return found;
-                }
-            }
-        }
-        return null;
     }
 }

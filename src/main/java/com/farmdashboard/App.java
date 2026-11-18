@@ -1,13 +1,9 @@
-requires transitive javafx.controls;
-
 package com.farmdashboard;
  
 import com.farmdashboard.boundary.Dashboard;
- 
+
 import javafx.application.Application;
 import javafx.stage.Stage;
-
-import static javafx.application.Application.launch;
 
 public class App extends Application {
 
