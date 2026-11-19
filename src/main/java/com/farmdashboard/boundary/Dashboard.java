@@ -1,11 +1,11 @@
 package com.farmdashboard.boundary;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import com.farmdashboard.control.DroneController;
 import com.farmdashboard.control.FarmAlerts;
 import com.farmdashboard.control.FarmController;
+import com.farmdashboard.control.FlightConditions;
 import com.farmdashboard.control.ItemReadings;
 import com.farmdashboard.control.Waypoint;
 import com.farmdashboard.data.DataFile;
@@ -51,9 +51,9 @@ public class Dashboard {
         FarmJson.copyInto(root, saved);
 
         farmController = new FarmController(root);
-        droneController = new DroneController(root);
-        itemReadings = new ItemReadings(LocalDateTime::now);
-        farmAlerts = new FarmAlerts(root);
+        droneController = new DroneController();
+        itemReadings = new ItemReadings();
+        farmAlerts = new FarmAlerts(root, itemReadings, new FlightConditions());
         selected = root;
     }
 
@@ -71,7 +71,7 @@ public class Dashboard {
         built = true;
 
         alertsBox = new AlertsBox(farmAlerts);
-        statusBox = new StatusBox(root, droneController);
+        statusBox = new StatusBox(root, droneController, itemReadings);
         treePanel = new ItemTreePanel(root, farmController);
         mapPanel = new VisualizationPanel();
         mapPanel.setRoot(root);
@@ -133,10 +133,11 @@ public class Dashboard {
         statusBox.showFor(selected);
     }
 
-    public void flyDrone(List<Waypoint> path) {
+    public void flyDrone(String type, FarmComponent target, List<Waypoint> path) {
+        double seconds = droneController.seconds(path);
         droneActionPanel.setDisabledWhileFlying(true);
         droneActionPanel.getAnimator().fly(path, mapPanel.getOverlay(), () -> {
-            droneController.logFlight(path);
+            droneController.finishFlight(root, type, target, seconds);
             droneActionPanel.setDisabledWhileFlying(false);
             refresh();
         });

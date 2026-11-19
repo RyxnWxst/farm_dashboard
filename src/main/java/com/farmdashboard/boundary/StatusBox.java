@@ -6,9 +6,12 @@ import java.util.Locale;
 
 import com.farmdashboard.control.DroneController;
 import com.farmdashboard.control.FlightConditions;
+import com.farmdashboard.control.ItemReadings;
 import com.farmdashboard.data.DataFile;
+import com.farmdashboard.data.DroneData.FlightLogEntry;
 import com.farmdashboard.data.FarmDataStore;
-import com.farmdashboard.data.ReadingsData;
+import com.farmdashboard.data.ReadingsData.Reading;
+import com.farmdashboard.data.WeatherData;
 import com.farmdashboard.entity.FarmComponent;
 import com.farmdashboard.entity.ItemContainer;
 
@@ -22,13 +25,17 @@ public class StatusBox extends VBox {
 
     private final ItemContainer root;
     private final DroneController droneController;
+    private final ItemReadings itemReadings;
+    private final FlightConditions flights = new FlightConditions();
 
     private final Label title = new Label("Status");
     private final VBox list = new VBox(6);
 
-    public StatusBox(ItemContainer root, DroneController droneController) {
+    public StatusBox(ItemContainer root, DroneController droneController,
+            ItemReadings itemReadings) {
         this.root = root;
         this.droneController = droneController;
+        this.itemReadings = itemReadings;
 
         getStyleClass().add("box");
         setPadding(new Insets(10));
@@ -85,68 +92,78 @@ public class StatusBox extends VBox {
     }
 
     private void addDrone() {
-        FarmComponent drone = root.findByName("Drone");
-        if (drone == null) {
+        var drone = droneController.findDrone(root);
+        if (drone.isEmpty()) {
             list.getChildren().add(
                     ScreenKit.infoRow("Drone", "Not on the farm", ScreenKit.Status.ACT));
             return;
         }
 
-        double cx = drone.getCenterX();
-        double cy = drone.getCenterY();
+        double cx = drone.get().getCenterX();
+        double cy = drone.get().getCenterY();
         list.getChildren().add(ScreenKit.infoRow("Drone",
                 "Home at (" + number(cx) + ", " + number(cy) + ")", ScreenKit.Status.GOOD));
 
-        String last = droneController.getLastFlightText();
-        list.getChildren().add(ScreenKit.infoRow("Last flight",
-                last == null ? "No flights yet" : last));
+        String last = flights.lastFlight()
+                .map(StatusBox::describeFlight)
+                .orElse("No flights yet");
+        list.getChildren().add(ScreenKit.infoRow("Last flight", last));
     }
 
     private void addFlightConditions() {
-        FlightConditions conditions = droneController.getFlightConditions();
-        if (conditions == null) {
-            return;
+        FlightConditions.Rating rating = droneController.conditionsNow();
+        WeatherData weather =
+                FarmDataStore.getInstance().get(DataFile.WEATHER, WeatherData.class);
+        String text = capitalize(rating.name())
+                + " (" + number(weather.getWindMph()) + " mph wind)";
+        list.getChildren().add(ScreenKit.infoRow("Flight conditions", text,
+                ScreenKit.fromWord(rating.name())));
+    }
+
+    private static String describeFlight(FlightLogEntry flight) {
+        StringBuilder text = new StringBuilder(capitalize(flight.getType()));
+        if (flight.getTarget() != null) {
+            text.append(' ').append(flight.getTarget());
         }
-        String word = conditions.nowStatus();
-        String text = capitalize(word) + " (" + number(conditions.nowWindMph()) + " mph wind)";
-        list.getChildren().add(ScreenKit.infoRow("Flight conditions", text, ScreenKit.fromWord(word)));
+        text.append(", ").append(number(flight.getDurationSeconds())).append(" s");
+        if (flight.getStartTime() != null) {
+            try {
+                text.append(" (")
+                    .append(formatUpdated(LocalDateTime.parse(flight.getStartTime())))
+                    .append(')');
+            } catch (RuntimeException e) {
+                text.append(" (").append(flight.getStartTime()).append(')');
+            }
+        }
+        return text.toString();
     }
 
     private static final DateTimeFormatter TIME_FORMAT =
             DateTimeFormatter.ofPattern("MMM d, h:mm a", Locale.US);
 
     private void addLatestReading(FarmComponent node) {
-        String text = latestReadingText(node);
-        list.getChildren().add(ScreenKit.infoRow("Latest reading",
-                text == null ? "None for this node" : text));
+        String text = itemReadings.latest(node.getName())
+                .map(StatusBox::describe)
+                .orElse("None for this node");
+        list.getChildren().add(ScreenKit.infoRow("Latest reading", text));
     }
 
-    private static String latestReadingText(FarmComponent node) {
-        ReadingsData data = FarmDataStore.getInstance().get(DataFile.READINGS, ReadingsData.class);
-        if (data == null || data.getReadings() == null) {
-            return null;
+    private static String describe(Reading reading) {
+        StringBuilder text = new StringBuilder();
+        if (reading.getStatus() != null) {
+            text.append(reading.getStatus());
         }
-        for (var reading : data.getReadings()) {
-            if (reading.getItem() == null || !reading.getItem().equalsIgnoreCase(node.getName())) {
-                continue;
-            }
-            StringBuilder text = new StringBuilder();
-            if (reading.getStatus() != null) {
-                text.append(reading.getStatus());
-            }
-            if (reading.getLabel() != null && !reading.getLabel().isEmpty()) {
-                text.append(text.length() > 0 ? ": " : "")
-                    .append(reading.getLabel()).append(' ')
-                    .append(reading.getPercent()).append('%');
-            } else if (reading.getNote() != null && !reading.getNote().isEmpty()) {
-                text.append(text.length() > 0 ? ": " : "").append(reading.getNote());
-            }
-            if (reading.getUpdated() != null) {
-                text.append(" (").append(formatUpdated(reading.getUpdated())).append(')');
-            }
-            return text.toString();
+        if (reading.getLabel() != null && !reading.getLabel().isEmpty()) {
+            text.append(text.length() > 0 ? ": " : "")
+                .append(reading.getLabel()).append(' ')
+                .append(reading.getPercent()).append('%');
+        } else if (reading.getNote() != null && !reading.getNote().isEmpty()) {
+            text.append(text.length() > 0 ? ": " : "").append(reading.getNote());
         }
-        return null;
+        if (reading.getUpdated() != null) {
+            text.append(" (").append(formatUpdated(reading.getUpdated())).append(')');
+        }
+        return text.toString();
     }
 
     private static String formatUpdated(LocalDateTime time) {
