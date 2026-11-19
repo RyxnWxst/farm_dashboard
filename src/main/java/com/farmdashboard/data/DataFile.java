@@ -3,10 +3,9 @@ package com.farmdashboard.data;
 public enum DataFile {
     FARM("farm.json", NodeData.class),            // the farm being worked on
     TEST_FARM("test-farm.json", NodeData.class),  // the brief's test scenario
-    READINGS("readings.json", ReadingsData.class);
-
-    // Add DRONE and WEATHER (P5) and READINGS (P4) here once their data classes are on main.
-    // ex: DRONE("drone.json", DroneData.class),
+    DRONE("drone.json", DroneData.class),         // flight settings and the flight log
+    WEATHER("weather.json", WeatherData.class),   // current conditions and forecast
+    READINGS("readings.json", ReadingsData.class); // latest reading per farm item
 
     private final String fileName;
     private final Class<?> dataClass;
