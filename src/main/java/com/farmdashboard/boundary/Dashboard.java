@@ -72,7 +72,7 @@ public class Dashboard {
 
         alertsBox = new AlertsBox(farmAlerts);
         statusBox = new StatusBox(root, droneController, itemReadings);
-        treePanel = new ItemTreePanel(root, farmController);
+        treePanel = new ItemTreePanel(root);
         mapPanel = new VisualizationPanel();
         mapPanel.setRoot(root);
         mapPanel.setOnSelect(this::select);
@@ -127,7 +127,7 @@ public class Dashboard {
         if (selected == null || root.findByName(selected.getName()) == null) {
             selected = root;
         }
-        treePanel.rebuild();
+        treePanel.refresh(root);
         mapPanel.redraw();
         alertsBox.refresh();
         statusBox.showFor(selected);
@@ -143,6 +143,6 @@ public class Dashboard {
         });
     }
 
-    public ItemContainer getRoot() { return root; }
+    public FarmComponent getRoot() { return root; }
     public FarmComponent getSelected() { return selected; }
 }
