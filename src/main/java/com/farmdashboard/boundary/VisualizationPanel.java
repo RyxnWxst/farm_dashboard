@@ -68,6 +68,16 @@ public class VisualizationPanel extends StackPane {
         return overlay;
     }
 
+    /**
+     * Puts the drone sprite on the overlay, above the farm. The overlay is never cleared by
+     * redraw(), so the sprite stays on top through every refresh. Adding it twice does nothing.
+     */
+    public void showSprite(DroneSprite sprite) {
+        if (!overlay.getChildren().contains(sprite)) {
+            overlay.getChildren().add(sprite);
+        }
+    }
+
     /** Redraws the whole farm. Call after every command or file change (Dashboard.refresh). */
     public void redraw() {
         mapLayer.getChildren().clear();

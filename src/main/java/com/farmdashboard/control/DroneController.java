@@ -68,6 +68,11 @@ public class DroneController {
         return planner().seconds(route);
     }
 
+    /** The drone's speed in px/s from drone.json, so the animation flies at the planned pace. */
+    public double speed() {
+        return planner().getSpeed();
+    }
+
     /** The current flight rating; the boundary asks for confirmation before an UNSAFE launch. */
     public Rating conditionsNow() {
         return conditions.now();

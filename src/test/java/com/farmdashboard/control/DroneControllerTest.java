@@ -133,6 +133,17 @@ class DroneControllerTest {
     }
 
     @Test
+    void speedComesFromTheDefaultDroneFile() {
+        assertEquals(250, controller.speed(), DELTA);
+    }
+
+    @Test
+    void aZeroSpeedInDroneJsonIsRefused() {
+        store.get(DataFile.DRONE, DroneData.class).setSpeed(0);
+        assertThrows(IllegalArgumentException.class, () -> controller.speed());
+    }
+
+    @Test
     void conditionsNowPassesThroughTheCurrentRating() {
         assertEquals(Rating.CAUTION, controller.conditionsNow()); // 12 mph, 10% rain
     }

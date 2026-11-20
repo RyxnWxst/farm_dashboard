@@ -39,6 +39,11 @@ public class FlightPlanner {
         this.margin = settings.getMargin();
     }
 
+    /** The drone's speed in px/s, already checked to be more than 0. */
+    public double getSpeed() {
+        return speed;
+    }
+
     /** Drone center, then the target's center with a hover, then back to the drone center. */
     public List<Waypoint> planVisit(FarmComponent drone, FarmComponent target) {
         requireNode(drone, "drone");

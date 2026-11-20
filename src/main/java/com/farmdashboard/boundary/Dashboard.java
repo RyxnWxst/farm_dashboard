@@ -42,6 +42,8 @@ public class Dashboard {
     private CommandPanel commandPanel;
     private VisualizationPanel mapPanel;
     private DroneActionPanel droneActionPanel;
+    private DroneSprite droneSprite;
+    private VBox screen; // the whole layout, disabled while the drone flies
 
     private Dashboard() {
 
@@ -76,6 +78,9 @@ public class Dashboard {
         mapPanel = new VisualizationPanel();
         mapPanel.setRoot(root);
         mapPanel.setOnSelect(this::select);
+        droneSprite = new DroneSprite();
+        droneSprite.setVisible(false); // shown only during a flight
+        mapPanel.showSprite(droneSprite);
         commandPanel = new CommandPanel(farmController);
         droneActionPanel = new DroneActionPanel(droneController);
 
@@ -95,6 +100,7 @@ public class Dashboard {
 
         VBox rootPane = new VBox(12, title, topRow, mainBox, actionsBox);
         rootPane.setPadding(new Insets(12));
+        screen = rootPane;
 
         Scene scene = new Scene(rootPane, 1280, 900);
         scene.getStylesheets().add(
@@ -135,12 +141,33 @@ public class Dashboard {
 
     public void flyDrone(String type, FarmComponent target, List<Waypoint> path) {
         double seconds = droneController.seconds(path);
-        droneActionPanel.setDisabledWhileFlying(true);
-        droneActionPanel.getAnimator().fly(path, mapPanel.getOverlay(), () -> {
+        flyDrone(path, () -> {
             droneController.finishFlight(root, type, target, seconds);
-            droneActionPanel.setDisabledWhileFlying(false);
             refresh();
         });
+    }
+
+    /**
+     * Disables every control, flies the sprite along the waypoints, and when it lands re-enables
+     * the controls and runs onLanding. Only the sprite moves; the Drone item stays where it is.
+     */
+    public void flyDrone(List<Waypoint> waypoints, Runnable onLanding) {
+        setFlying(true);
+        try {
+            droneActionPanel.getAnimator().fly(droneSprite, waypoints, droneController.speed(), () -> {
+                setFlying(false);
+                onLanding.run();
+            });
+        } catch (RuntimeException e) {
+            setFlying(false); // the flight never started, so don't leave the screen locked
+            throw e;
+        }
+    }
+
+    private void setFlying(boolean flying) {
+        screen.setDisable(flying);
+        droneActionPanel.setDisabledWhileFlying(flying);
+        droneSprite.setVisible(flying);
     }
 
     public ItemContainer getRoot() { return root; }

@@ -141,3 +141,23 @@
 .status-dot {
     -fx-stroke: transparent;
 }
+
+/* The drone sprite that flies over the map (DroneSprite) */
+.drone-arm {
+    -fx-stroke: -farm-text;
+    -fx-stroke-width: 2;
+}
+
+.drone-rotor {
+    -fx-fill: rgba(255, 255, 255, 0.85);
+    -fx-stroke: -farm-text;
+    -fx-stroke-width: 1.5;
+}
+
+.drone-body {
+    -fx-fill: -farm-act;
+    -fx-stroke: -farm-text;
+    -fx-stroke-width: 1;
+    -fx-arc-width: 3;
+    -fx-arc-height: 3;
+}
