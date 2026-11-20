@@ -122,7 +122,7 @@ public class Dashboard {
         selected = node;
         commandPanel.showFor(node);
         statusBox.showFor(node);
-
+        droneActionPanel.showFor(node);
     }
 
     public void refresh() {
@@ -137,6 +137,7 @@ public class Dashboard {
         mapPanel.redraw();
         alertsBox.refresh();
         statusBox.showFor(selected);
+        droneActionPanel.showFor(selected);
     }
 
     public void flyDrone(String type, FarmComponent target, List<Waypoint> path) {
