@@ -3,7 +3,7 @@ package com.farmdashboard.boundary;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
+//import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.control.Alert;
@@ -79,7 +79,7 @@ public final class InputDialogs {
         dialog.setResultConverter(bt -> {
             if (bt != ButtonType.OK) return null;
             try {
-                return new Double(Double.parseDouble(pf.getText()));
+                return Double.parseDouble(pf.getText());
             } catch (NumberFormatException ex) {
                 showErrorDialog("Please enter a valid number for the price.");
                 return null;
