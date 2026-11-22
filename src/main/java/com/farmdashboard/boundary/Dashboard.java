@@ -116,7 +116,7 @@ public class Dashboard {
         selected = node;
         commandPanel.showFor(node);
         statusBox.showFor(node);
-
+        mapPanel.setSelected(node);
     }
 
     public void refresh() {
@@ -129,6 +129,8 @@ public class Dashboard {
         }
         treePanel.refresh(root);
         mapPanel.redraw();
+        treePanel.rebuild();
+        mapPanel.setSelected(selected);
         alertsBox.refresh();
         statusBox.showFor(selected);
     }
