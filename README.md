@@ -114,7 +114,7 @@ Artificial data is used for both weather and data. This simulates real time weat
     - `boundary` – visual elements.
 
   Communication is in a downwards direction. Consequently, all logic can be tested without needing to run the window.
-- **UML class diagrams** can be found in [`docs/uml/`](docs/uml/). There is one for the system as a whole and also one for each team member’s area of responsibility.
+- **UML class diagrams** can be found in [`docs/uml/`](docs/uml/): one for the system as a whole, plus one each for the Composite and Singleton patterns.
 
 ```
 src/main/java/com/farmdashboard/
