@@ -1,136 +1,171 @@
 package com.farmdashboard.control;
 
-import com.farmdashboard.entity.FarmComponent;
-import com.farmdashboard.entity.ItemContainer;
-import com.farmdashboard.entity.Item;
-
-import com.farmdashboard.data.FarmDataStore;
 import com.farmdashboard.data.DataFile;
+import com.farmdashboard.data.FarmDataStore;
+import com.farmdashboard.data.FarmJson;
+import com.farmdashboard.data.NodeData;
+import com.farmdashboard.entity.FarmComponent;
+import com.farmdashboard.entity.Item;
+import com.farmdashboard.entity.ItemContainer;
 
-
+/**
+ * One method per brief command. Each checks its input (IllegalArgumentException with a message
+ * the user can read), changes the farm, then saves the whole farm to farm.json.
+ */
 public class FarmController {
-    private final FarmDataStore store;
-    private final FarmComponent root;
 
-    public FarmController(FarmComponent root) {
+    private final ItemContainer root;
+
+    public FarmController(ItemContainer root) {
         this.root = root;
-        this.store = FarmDataStore.getInstance();
     }
 
-    private void requireContainer(FarmComponent component) {
-        if (!component.isContainer()) {
-            throw new IllegalArgumentException("Component is not a container: " + component.getName());
-        }
+    public Item addItem(FarmComponent parent, ComponentData data) {
+        ItemContainer container = requireContainer(parent);
+        validate(data);
+        Item item = new Item(data.getName().trim(), data.getPrice(), data.getLocationX(),
+                data.getLocationY(), data.getLength(), data.getWidth(), data.getHeight());
+        container.add(item);
+        save();
+        return item;
     }
 
-    private void validateData(ComponentData data) {
-        if (data.getName() == null || data.getName().isEmpty()) {
-            throw new IllegalArgumentException("Component name cannot be null or empty");
+    public ItemContainer addContainer(FarmComponent parent, ComponentData data) {
+        ItemContainer container = requireContainer(parent);
+        validate(data);
+        ItemContainer child = new ItemContainer(data.getName().trim(), data.getPrice(),
+                data.getLocationX(), data.getLocationY(), data.getLength(), data.getWidth(),
+                data.getHeight());
+        container.add(child);
+        save();
+        return child;
+    }
+
+    /** Deletes the node and everything inside it. */
+    public void delete(FarmComponent node) {
+        requireNotRoot(node, "deleted");
+        ItemContainer parent = node.getParent();
+        if (parent == null) {
+            throw new IllegalArgumentException(node.getName() + " isn't on the farm.");
         }
-        if (data.getPrice() < 0) {
-            throw new IllegalArgumentException("Component price cannot be negative");
+        parent.remove(node);
+        save();
+    }
+
+    public void rename(FarmComponent node, String name) {
+        requireNotRoot(node, "renamed");
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("The name can't be blank.");
         }
-        if (data.getLength() <= 0 || data.getWidth() <= 0 || data.getHeight() <= 0) {
-            throw new IllegalArgumentException("Component dimensions must be positive");
+        node.setName(name.trim());
+        save();
+    }
+
+    public void changePrice(FarmComponent node, double price) {
+        requireNotRoot(node, "given a price");
+        requireAtLeastZero(price, "Price");
+        node.setPrice(price);
+        save();
+    }
+
+    /** Moves the node, and everything inside it, to a new x. */
+    public void changeLocationX(FarmComponent node, double x) {
+        requireNotRoot(node, "moved");
+        requireAtLeastZero(x, "Location x");
+        node.move(x, node.getLocationY());
+        save();
+    }
+
+    /** Moves the node, and everything inside it, to a new y. */
+    public void changeLocationY(FarmComponent node, double y) {
+        requireNotRoot(node, "moved");
+        requireAtLeastZero(y, "Location y");
+        node.move(node.getLocationX(), y);
+        save();
+    }
+
+    public void changeLength(FarmComponent node, double length) {
+        requireNotRoot(node, "resized");
+        requireMoreThanZero(length, "Length");
+        node.setLength(length);
+        save();
+    }
+
+    public void changeWidth(FarmComponent node, double width) {
+        requireNotRoot(node, "resized");
+        requireMoreThanZero(width, "Width");
+        node.setWidth(width);
+        save();
+    }
+
+    public void changeHeight(FarmComponent node, double height) {
+        requireNotRoot(node, "resized");
+        requireAtLeastZero(height, "Height");
+        node.setHeight(height);
+        save();
+    }
+
+    /** Puts every default file back, then replaces the farm with the brief's test farm and saves it. */
+    public void loadTestFarm() {
+        FarmDataStore store = FarmDataStore.getInstance();
+        store.resetAll();
+        FarmJson.copyInto(root, store.get(DataFile.TEST_FARM, NodeData.class));
+        save();
+    }
+
+    /** How many items and containers are inside the node, not counting the node itself. */
+    public int countContents(FarmComponent node) {
+        int count = 0;
+        for (FarmComponent child : node.getChild()) {
+            count += 1 + countContents(child);
         }
-        if (data.getLocationX() < 0 || data.getLocationY() < 0) {
-            throw new IllegalArgumentException("Component coordinates cannot be negative");
-        }
+        return count;
     }
 
     private void save() {
-        store.save(DataFile.FARM);
+        FarmJson.saveFarm(root);
     }
 
-    public void addItem(FarmComponent parent, ComponentData data){
-        requireContainer(parent);
-        validateData(data);
-        Item item = new Item(data.getName(), data.getPrice(), data.getLocationX(), data.getLocationY(),
-                data.getLength(), data.getWidth(), data.getHeight());
-        ((ItemContainer) parent).add(item);
-        save();
-    }
-
-    public void addContainer(FarmComponent parent, ComponentData data){
-        requireContainer(parent);
-        validateData(data);
-        ItemContainer container = new ItemContainer(data.getName(), data.getPrice(), data.getLocationX(), data.getLocationY(),
-                data.getLength(), data.getWidth(), data.getHeight());
-        ((ItemContainer) parent).add(container);
-        save();
-    }
-
-    public void rename(FarmComponent component, String newName) {
-        if (newName == null || newName.isEmpty()) {
-            throw new IllegalArgumentException("New name cannot be null or empty");
+    private static ItemContainer requireContainer(FarmComponent node) {
+        if (node == null || !node.isContainer()) {
+            throw new IllegalArgumentException("Select an item container to add to.");
         }
-        component.setName(newName);
-        save();
+        return (ItemContainer) node;
     }
 
-    public void changePrice(FarmComponent component, double newPrice) {
-        if (newPrice < 0) {
-            throw new IllegalArgumentException("New price cannot be negative");
+    private void requireNotRoot(FarmComponent node, String action) {
+        if (node == null) {
+            throw new IllegalArgumentException("Select an item or item container first.");
         }
-        component.setPrice(newPrice);
-        save();
-    }
-
-    public void changeLocationY(FarmComponent component, int newY) {
-        if (newY < 0) {
-            throw new IllegalArgumentException("New Y coordinate cannot be negative");
+        if (node == root) {
+            throw new IllegalArgumentException("Root is the whole farm and can't be " + action + ".");
         }
-        component.setLocationY(newY);
-        save();
     }
 
-    public void changeLocationX(FarmComponent component, int newX) {
-        if (newX < 0) {
-            throw new IllegalArgumentException("New X coordinate cannot be negative");
+    private static void validate(ComponentData data) {
+        if (data == null) {
+            throw new IllegalArgumentException("No values were entered.");
         }
-        component.setLocationX(newX);
-        save();
-    }
-
-    public void changeLength(FarmComponent component, double newLength) {
-        if (newLength <= 0) {
-            throw new IllegalArgumentException("New length must be positive");
+        if (data.getName() == null || data.getName().isBlank()) {
+            throw new IllegalArgumentException("The name can't be blank.");
         }
-        component.setLength(newLength);
-        save();
+        requireAtLeastZero(data.getPrice(), "Price");
+        requireAtLeastZero(data.getLocationX(), "Location x");
+        requireAtLeastZero(data.getLocationY(), "Location y");
+        requireMoreThanZero(data.getLength(), "Length");
+        requireMoreThanZero(data.getWidth(), "Width");
+        requireAtLeastZero(data.getHeight(), "Height");
     }
 
-    public void changeWidth(FarmComponent component, double newWidth) {
-        if (newWidth <= 0) {
-            throw new IllegalArgumentException("New width must be positive");
+    private static void requireAtLeastZero(double value, String field) {
+        if (Double.isNaN(value) || value < 0) {
+            throw new IllegalArgumentException(field + " can't be negative.");
         }
-        component.setWidth(newWidth);
-        save();
     }
 
-    public void changeHeight(FarmComponent component, double newHeight) {
-        if (newHeight <= 0) {
-            throw new IllegalArgumentException("New height must be positive");
-        }
-        component.setHeight(newHeight);
-        save();
-    }
-
-    public void remove(FarmComponent parent, FarmComponent component) {
-        requireContainer(parent);
-        ((ItemContainer) parent).remove(component);
-        save();
-    }
-
-    public int countComponents(FarmComponent component) {
-        if (component.isContainer()) {
-            int count = 1; // Count the container itself
-            for (FarmComponent child : ((ItemContainer) component).getChild()) {
-                count += countComponents(child); // Recursively count children
-            }
-            return count;
-        } else {
-            return 1; // Count the item itself
+    private static void requireMoreThanZero(double value, String field) {
+        if (Double.isNaN(value) || value <= 0) {
+            throw new IllegalArgumentException(field + " must be more than 0.");
         }
     }
 }

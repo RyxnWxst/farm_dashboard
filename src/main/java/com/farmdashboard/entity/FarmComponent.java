@@ -57,7 +57,7 @@ public abstract class FarmComponent {
             }
         }
         return null;
-     }
+    }
     /** True if this node's rectangle lies completely inside the other node's rectangle. */
     public boolean isInside(FarmComponent other) {
         return location_x >= other.location_x
@@ -102,16 +102,8 @@ public abstract class FarmComponent {
         return location_x;
     }
 
-    public void setLocationX(double location_x) {
-        this.location_x = location_x;
-    }
-
     public double getLocationY() {
         return location_y;
-    }
-
-    public void setLocationY(double location_y) {
-        this.location_y = location_y;
     }
 
     public double getLength() {
