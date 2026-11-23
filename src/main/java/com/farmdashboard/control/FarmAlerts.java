@@ -1,10 +1,7 @@
 package com.farmdashboard.control;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import com.farmdashboard.entity.FarmComponent;
 import com.farmdashboard.entity.ItemContainer;
@@ -14,9 +11,6 @@ public class FarmAlerts {
     public enum Severity { WATCH, ACT }
 
     public record Alert(Severity severity, String message) { }
-
-    private static final DateTimeFormatter HOUR_FORMAT =
-            DateTimeFormatter.ofPattern("h a", Locale.US);
 
     private final ItemContainer root;
     private final ItemReadings itemReadings;
@@ -65,13 +59,6 @@ public class FarmAlerts {
 
     private void addUnsafeForecast(List<Alert> alerts) {
         conditions.firstUnsafe().ifPresent(entry -> alerts.add(new Alert(Severity.ACT,
-                "Unsafe flying forecast for " + formatTime(entry.getTime()))));
-    }
-
-    private static String formatTime(Object time) {
-        LocalDateTime parsed = (time instanceof LocalDateTime t)
-                ? t
-                : LocalDateTime.parse(String.valueOf(time));
-        return parsed.format(HOUR_FORMAT);
+                "Unsafe flying forecast for " + entry.getLabel())));
     }
 }
