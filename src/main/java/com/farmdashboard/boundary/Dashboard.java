@@ -17,7 +17,10 @@ import com.farmdashboard.entity.ItemContainer;
 
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -88,21 +91,43 @@ public class Dashboard {
         title.getStyleClass().add("title-bar");
         title.setMaxWidth(Double.MAX_VALUE);
 
+        // Top row: Alerts and Status side by side, as in the v3 wireframe.
         HBox topRow = new HBox(12, alertsBox, statusBox);
+        alertsBox.setPrefWidth(0);
+        statusBox.setPrefWidth(0);
         HBox.setHgrow(alertsBox, Priority.ALWAYS);
         HBox.setHgrow(statusBox, Priority.ALWAYS);
 
-        HBox mainRow = new HBox(12, treePanel, mapPanel);
-        HBox.setHgrow(mapPanel, Priority.ALWAYS);
-        VBox mainBox = ScreenKit.titledBox("Farm Layout", mainRow);
+        // Main row: the tree and the 800 x 600 map in one box, the Actions column on the right.
+        Label legend = new Label("Blue = item container  |  Green = item  |  Yellow = selected  |  "
+                + "Red outline = outside its container");
+        legend.getStyleClass().add("info-label");
+        HBox treeAndMap = new HBox(12, treePanel, mapPanel);
+        VBox farmBox = ScreenKit.titledBox("Farm Items and Map (800 x 600)", treeAndMap, legend);
+        HBox.setHgrow(farmBox, Priority.ALWAYS);
 
-        VBox actionsBox = ScreenKit.titledBox("Actions", commandPanel, droneActionPanel);
+        Button loadTestFarm = ScreenKit.pillButton("Load Test Farm",
+                "Replace the farm with the brief's test farm (worth $177,500) and save it.",
+                this::loadTestFarm);
+        loadTestFarm.setMaxWidth(Double.MAX_VALUE);
+        VBox actionsBox = ScreenKit.titledBox("Actions", commandPanel, new Separator(),
+                droneActionPanel, new Separator(), loadTestFarm);
+        actionsBox.setPrefWidth(250);
+        actionsBox.setMinWidth(250);
 
-        VBox rootPane = new VBox(12, title, topRow, mainBox, actionsBox);
+        HBox mainRow = new HBox(12, farmBox, actionsBox);
+
+        VBox rootPane = new VBox(12, title, topRow, mainRow);
         rootPane.setPadding(new Insets(12));
         screen = rootPane;
 
-        Scene scene = new Scene(rootPane, 1280, 900);
+        // Scrolls only if the window is smaller than the layout (e.g. a small laptop screen).
+        ScrollPane page = new ScrollPane(rootPane);
+        page.setFitToWidth(true);
+        page.setFitToHeight(true);
+        page.getStyleClass().add("page-scroll");
+
+        Scene scene = new Scene(page, 1400, 940);
         scene.getStylesheets().add(
                 getClass().getResource("/com/farmdashboard/styles.css").toExternalForm());
 
@@ -118,28 +143,52 @@ public class Dashboard {
         refresh();
     }
 
+    /** Selects a node everywhere: tree, map, Status, commands and drone panel. Null means Root. */
     public void select(FarmComponent node) {
-        selected = node;
-        commandPanel.setSelection(node);
-        statusBox.showFor(node);
-        droneActionPanel.showFor(node);
-        mapPanel.setSelected(node);
+        selected = node == null ? root : node;
+        if (!built) {
+            return;
+        }
+        treePanel.select(selected);
+        commandPanel.setSelection(selected);
+        statusBox.showFor(selected);
+        droneActionPanel.showFor(selected);
+        mapPanel.setSelected(selected);
     }
 
     public void refresh() {
         if (!built) {
             return;
         }
-
-        if (selected == null || root.findByName(selected.getName()) == null) {
-            selected = root;
+        if (!isOnFarm(selected)) {
+            selected = root; // the selected node was deleted, or the farm was replaced
         }
-        treePanel.refresh(root);
+        treePanel.refresh(root, selected);
         mapPanel.redraw();
-        mapPanel.setSelected(selected);
         alertsBox.refresh();
-        statusBox.showFor(selected);
-        droneActionPanel.showFor(selected);
+        select(selected);
+    }
+
+    private void loadTestFarm() {
+        if (!InputDialogs.confirmLoadTestFarm()) {
+            return;
+        }
+        try {
+            farmController.loadTestFarm();
+            select(root);
+        } catch (RuntimeException e) {
+            InputDialogs.showErrorDialog("Couldn't load the test farm: " + e.getMessage());
+        }
+    }
+
+    // True if the node is still part of this farm (walks up its parents to Root).
+    private boolean isOnFarm(FarmComponent node) {
+        for (FarmComponent n = node; n != null; n = n.getParent()) {
+            if (n == root) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void flyDrone(String type, FarmComponent target, List<Waypoint> path) {

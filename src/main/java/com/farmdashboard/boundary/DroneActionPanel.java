@@ -18,7 +18,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 
@@ -27,13 +27,14 @@ import javafx.util.Duration;
  * choice, confirms an UNSAFE launch, plans the route with DroneController and hands it to
  * Dashboard.flyDrone. It never changes the farm or moves the Drone item itself.
  */
-public class DroneActionPanel extends HBox {
+public class DroneActionPanel extends VBox {
 
     private final DroneController droneController;
     private final DroneAnimator animator = new DroneAnimator();
 
-    private final RadioButton visitChoice = new RadioButton("Visit selected item");
-    private final RadioButton scanChoice = new RadioButton("Scan farm");
+    private final RadioButton visitChoice = new RadioButton("Visit Item / Item Container");
+    private final RadioButton scanChoice = new RadioButton("Scan Farm");
+    private final Label target = new Label();
     private final Button launchButton;
     private final Tooltip launchTip = new Tooltip();
 
@@ -41,10 +42,10 @@ public class DroneActionPanel extends HBox {
     private boolean flying;
 
     public DroneActionPanel(DroneController droneController) {
-        super(12);
+        super(8);
         this.droneController = droneController;
         getStyleClass().add("drone-actions");
-        setAlignment(Pos.CENTER_LEFT);
+        setAlignment(Pos.TOP_LEFT);
 
         ToggleGroup mode = new ToggleGroup();
         visitChoice.setToggleGroup(mode);
@@ -53,18 +54,22 @@ public class DroneActionPanel extends HBox {
         mode.selectedToggleProperty().addListener((obs, old, now) -> updateLaunch());
 
         launchButton = ScreenKit.pillButton("Launch Drone", this::launch);
+        launchButton.setMaxWidth(Double.MAX_VALUE);
 
         // A disabled button gets no mouse events, so its own tooltip would never show the reason.
         // The tooltip goes on a wrapper around the button instead.
         StackPane launchHolder = new StackPane(launchButton);
+        launchHolder.setMaxWidth(Double.MAX_VALUE);
         launchTip.setShowDelay(Duration.millis(300));
         launchTip.setWrapText(true);
         launchTip.setMaxWidth(280);
         Tooltip.install(launchHolder, launchTip);
 
-        Label heading = new Label("Drone:");
-        heading.getStyleClass().add("info-label");
-        getChildren().addAll(heading, visitChoice, scanChoice, launchHolder);
+        Label heading = new Label("Drone Actions");
+        heading.getStyleClass().add("box-title");
+        target.getStyleClass().add("info-label");
+        target.setWrapText(true);
+        getChildren().addAll(heading, visitChoice, scanChoice, launchHolder, target);
         updateLaunch();
     }
 
@@ -97,6 +102,8 @@ public class DroneActionPanel extends HBox {
         } else {
             launchTip.setText("Fly lanes over the whole farm, then come back.");
         }
+        target.setText(flying ? "The drone is flying..." : problem != null ? problem
+                                                           : visitChoice.isSelected() ? "Target: " + selected.getName() : "Target: the whole farm");
     }
 
     // Why Visit can't launch right now, or null if it can (or Scan is chosen).

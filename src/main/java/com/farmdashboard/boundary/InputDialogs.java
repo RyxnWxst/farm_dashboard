@@ -15,8 +15,13 @@ public final class InputDialogs {
     private InputDialogs() {}
 
     public static ComponentData addItemDialog(){
+        return addItemDialog("Add Item");
+    }
+
+    /** The form for a new item or item container; the title says which. */
+    public static ComponentData addItemDialog(String title){
         Dialog<ComponentData> dialog = new Dialog<>();
-        dialog.setTitle("Add Item");
+        dialog.setTitle(title);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         TextField name = new TextField();
@@ -28,13 +33,13 @@ public final class InputDialogs {
         TextField height = new TextField();
 
         GridPane grid = form(
-            "Name", name,
-            "Price", price,
-            "X", x,
-            "Y", y,
-            "Length", length,
-            "Width", width,
-            "Height", height
+                "Name", name,
+                "Price", price,
+                "X", x,
+                "Y", y,
+                "Length", length,
+                "Width", width,
+                "Height", height
         );
         dialog.getDialogPane().setContent(grid);
 
@@ -42,12 +47,12 @@ public final class InputDialogs {
             if (dialogButton == ButtonType.OK) {
                 try {
                     return new ComponentData(name.getText(),
-                        Double.parseDouble(price.getText()),
-                        Double.parseDouble(x.getText()),
-                        Double.parseDouble(y.getText()),
-                        Double.parseDouble(length.getText()),
-                        Double.parseDouble(width.getText()),
-                        Double.parseDouble(height.getText()));   
+                            Double.parseDouble(price.getText()),
+                            Double.parseDouble(x.getText()),
+                            Double.parseDouble(y.getText()),
+                            Double.parseDouble(length.getText()),
+                            Double.parseDouble(width.getText()),
+                            Double.parseDouble(height.getText()));
                 } catch (NumberFormatException e) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle("Invalid Input");
@@ -101,7 +106,7 @@ public final class InputDialogs {
             if (bt != ButtonType.OK) return null;
             try {
                 return new Double[]{ Double.parseDouble(xf.getText()),
-                                     Double.parseDouble(yf.getText()) };
+                        Double.parseDouble(yf.getText()) };
             } catch (NumberFormatException ex) {
                 showErrorDialog("Please enter numbers for x and y.");
                 return null;
@@ -119,15 +124,15 @@ public final class InputDialogs {
         TextField wf = new TextField(String.valueOf(width));
         TextField hf = new TextField(String.valueOf(height));
         dialog.getDialogPane().setContent(
-            form("Length", lf, "Width", wf, "Height", hf));
+                form("Length", lf, "Width", wf, "Height", hf));
 
         dialog.setResultConverter(bt -> {
             if (bt != ButtonType.OK) return null;
             try {
                 return new Double[]{ Double.parseDouble(lf.getText()),
-                                     Double.parseDouble(wf.getText()),
-                                     Double.parseDouble(hf.getText()) };
-            } 
+                        Double.parseDouble(wf.getText()),
+                        Double.parseDouble(hf.getText()) };
+            }
             catch (NumberFormatException ex) {
                 showErrorDialog("Please enter numbers for length, width and height.");
                 return null;
@@ -138,13 +143,13 @@ public final class InputDialogs {
 
     public static boolean confirmDeleteDialog(String name, int contentsCount) {
         String msg = contentsCount == 0?
-        "Delete \"" + name + "\"?" : "Delete \"" + name + "\" and its " + contentsCount + " contents?";
+                "Delete \"" + name + "\"?" : "Delete \"" + name + "\" and its " + contentsCount + " contents?";
         return confirm("Delete", msg);
     }
 
     public static boolean confirmLoadTestFarm() {
         return confirm("Load Test Farm",
-            "Load the test farm? This replaces the current farm and saves it.");
+                "Load the test farm? This replaces the current farm and saves it.");
     }
 
     public static void showErrorDialog(String message) {
@@ -155,7 +160,7 @@ public final class InputDialogs {
 
     private static boolean confirm(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, message,
-                                ButtonType.OK, ButtonType.CANCEL);
+                ButtonType.OK, ButtonType.CANCEL);
         alert.setTitle(title);
         alert.setHeaderText(null);
         return alert.showAndWait().filter(bt -> bt == ButtonType.OK).isPresent();
